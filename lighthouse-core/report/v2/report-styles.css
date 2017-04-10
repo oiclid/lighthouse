@@ -224,25 +224,44 @@ body {
   padding-top: 0;
 }
 
-.lighthouse-category > .lighthouse-audit {
+.lighthouse-category > .lighthouse-audit,
+.lighthouse-category > details > .lighthouse-audit {
   margin-left: calc(var(--lh-category-score-width) + var(--lh-score-margin));
 }
 
-.lighthouse-category > .lighthouse-score {
+.lighthouse-category > .lighthouse-score,
+.lighthouse-category > details > .lighthouse-score {
   font-size: 20px;
 }
 
-.lighthouse-category > .lighthouse-score .lighthouse-score__value {
+.lighthouse-category > .lighthouse-score .lighthouse-score__value,
+.lighthouse-category > details > .lighthouse-score .lighthouse-score__value {
   width: var(--lh-category-score-width);
 }
 
 /* Category snippet shouldnt have pointer cursor. */
-.lighthouse-category > .lighthouse-score .lighthouse-score__snippet {
+.lighthouse-category > .lighthouse-score .lighthouse-score__snippet,
+.lighthouse-category > details > .lighthouse-score .lighthouse-score__snippet {
   cursor: initial;
 }
 
-.lighthouse-category > .lighthouse-score .lighthouse-score__title {
+.lighthouse-category > .lighthouse-score .lighthouse-score__title,
+.lighthouse-category > details > .lighthouse-score .lighthouse-score__title {
   font-size: 24px;
   font-weight: 400;
 }
 
+summary.lighthouse-cateogry-passed-summary {
+    margin: 10px 5px;
+    font-size: 15px;
+}
+
+summary.lighthouse-cateogry-passed-summary::-webkit-details-marker {
+    background: rgb(66, 175, 69);
+    color: white;
+    position:relative;
+    content: '';
+    padding: 3px;
+}
+
+/*# sourceURL=report.styles.css */

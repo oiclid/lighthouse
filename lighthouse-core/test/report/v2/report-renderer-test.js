@@ -104,7 +104,7 @@ describe('ReportRenderer V2', () => {
       assert.equal(title.textContent, category.name, 'title is set');
       assert.equal(description.textContent, category.description, 'description is set');
 
-      const audits = categoryDOM.querySelectorAll('.lighthouse-category > .lighthouse-audit');
+      const audits = categoryDOM.querySelectorAll('.lighthouse-category > .lighthouse-audit, .lighthouse-category > details > .lighthouse-audit');
       assert.equal(audits.length, category.audits.length, 'renders correct number of audits');
     });
   });
