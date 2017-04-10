@@ -272,6 +272,17 @@ class Config {
       configJSON = Config.extendConfigJSON(deepClone(defaultConfig), configJSON);
     }
 
+    // Generate a limited config if specified
+    if (configJSON.settings && Array.isArray(configJSON.settings.only)) {
+      const categoryIds = configJSON.settings.only
+        .filter(item => item.match(/^category:(.*)/))
+        .map(item => item.match(/^category:(.*)/)[1]);
+      const auditIds = configJSON.settings.only
+        .filter(item => item.match(/^audit:(.*)/))
+        .map(item => item.match(/^audit:(.*)/)[1]);
+      configJSON = Config.generateNewFilteredConfig(configJSON, categoryIds, auditIds);
+    }
+
     // Store the directory of the config path, if one was provided.
     this._configDir = configPath ? path.dirname(configPath) : undefined;
 
@@ -316,14 +327,15 @@ class Config {
   /**
    * Filter out any unrequested items from the config, based on requested top-level categories.
    * @param {!Object} oldConfig Lighthouse config object
-   * @param {!Array<string>} categoryIds ID values of categories to include
+   * @param {!Array<string>=} categoryIds ID values of categories to include
+   * @param {!Array<string>=} auditIds ID values of categories to include
    * @return {!Object} A new config
    */
-  static generateNewConfigOfCategories(oldConfig, categoryIds) {
+  static generateNewFilteredConfig(oldConfig, categoryIds, auditIds) {
     // 0. Clone config to avoid mutating it
-    const config = JSON.parse(JSON.stringify(oldConfig));
+    const config = deepClone(oldConfig);
     // 1. Filter to just the chosen categories
-    config.categories = Config.filterCategories(config.categories, categoryIds);
+    config.categories = Config.filterCategoriesAndAudits(config.categories, categoryIds, auditIds);
 
     // 2. Resolve which audits will need to run
     const requestedAuditNames = Config.getAuditIdsInCategories(config.categories);
@@ -344,14 +356,21 @@ class Config {
    * Filter out any unrequested categories from the categories object.
    * @param {!Object<string, {audits: !Array<{id: string}>}>} categories
    * @param {Array<string>=} categoryIds
+   * @param {Array<string>=} auditIds
    * @return {!Object<string, {audits: !Array<{id: string}>}>}
    */
-  static filterCategories(oldCategories, categoryIds = []) {
+  static filterCategoriesAndAudits(oldCategories, categoryIds = [], auditIds = []) {
     const categories = {};
 
     Object.keys(oldCategories).forEach(categoryId => {
       if (categoryIds.includes(categoryId)) {
         categories[categoryId] = oldCategories[categoryId];
+      } else {
+        const newCategory = deepClone(oldCategories[categoryId]);
+        newCategory.audits = newCategory.audits.filter(audit => auditIds.includes(audit.id));
+        if (newCategory.audits.length) {
+          categories[categoryId] = newCategory;
+        }
       }
     });
 
