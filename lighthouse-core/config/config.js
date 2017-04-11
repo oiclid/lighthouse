@@ -353,14 +353,37 @@ class Config {
   }
 
   /**
-   * Filter out any unrequested categories from the categories object.
+   * Filter out any unrequested categories or audits from the categories object.
    * @param {!Object<string, {audits: !Array<{id: string}>}>} categories
-   * @param {Array<string>=} categoryIds
-   * @param {Array<string>=} auditIds
+   * @param {!Array<string>=} categoryIds
+   * @param {!Array<string>=} auditIds
    * @return {!Object<string, {audits: !Array<{id: string}>}>}
    */
   static filterCategoriesAndAudits(oldCategories, categoryIds = [], auditIds = []) {
     const categories = {};
+
+    // warn if the category is not found
+    categoryIds.forEach(category => {
+      if (!oldCategories[category]) {
+        log.warn('config', `unrecognized category: ${category}`);
+      }
+    });
+
+    // warn if the audit is not found in a category
+    auditIds.forEach(audit => {
+      const foundCategory = Object.keys(oldCategories).find(category => {
+        const audits = oldCategories[category].audits;
+        return audits.find(candidate => candidate.id === audit);
+      });
+
+      if (!foundCategory) {
+        log.warn('config', `unrecognized audit: ${audit}`);
+      }
+
+      if (categoryIds.includes(foundCategory)) {
+        log.warn('config', `${foundCategory} category already includes "${audit}"`);
+      }
+    });
 
     Object.keys(oldCategories).forEach(categoryId => {
       if (categoryIds.includes(categoryId)) {
