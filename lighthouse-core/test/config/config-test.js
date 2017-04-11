@@ -265,6 +265,64 @@ describe('Config', () => {
     }), /meta.requiredArtifacts property/);
   });
 
+  it('filters the config', () => {
+    const config = new Config({
+      settings: {
+        onlyCategories: ['needed-category'],
+        onlyAudits: ['color-contrast'],
+      },
+      passes: [
+        {recordTrace: true, gatherers: []},
+        {recordNetwork: true, gatherers: ['accessibility']},
+      ],
+      audits: [
+        'accessibility/color-contrast',
+        'first-meaningful-paint',
+        'time-to-interactive',
+        'estimated-input-latency',
+      ],
+      categories: {
+        'needed-category': {
+          audits: [
+            {id: 'first-meaningful-paint'},
+            {id: 'time-to-interactive'},
+          ],
+        },
+        'other-category': {
+          audits: [
+            {id: 'color-contrast'},
+            {id: 'estimated-input-latency'},
+          ],
+        },
+        'unused-category': {
+          audits: [
+            {id: 'estimated-input-latency'},
+          ]
+        }
+      },
+    });
+
+    assert.ok(config.audits.length, 3);
+    assert.equal(config.passes.length, 2);
+    assert.ok(!config.categories['unused-category'], 'removes unused categories');
+    assert.equal(config.categories['needed-category'].audits.length, 2);
+    assert.equal(config.categories['other-category'].audits.length, 1);
+  });
+
+  it('filtering works with extension', () => {
+    const config = new Config({
+      extends: true,
+      settings: {
+        onlyCategories: ['performance'],
+        onlyAudits: ['is-on-https'],
+      },
+    });
+
+    assert.ok(config.audits.length, 'inherited audits by extension');
+    assert.ok(config.audits.length < origConfig.audits.length, 'filtered out audits');
+    assert.equal(config.passes.length, 2, 'filtered out passes');
+  });
+
   describe('artifact loading', () => {
     it('expands artifacts', () => {
       const config = new Config({
@@ -423,6 +481,22 @@ describe('Config', () => {
       const config = Config.generateNewFilteredConfig(origConfig, [], ['works-offline']);
       assert.equal(config.passes.length, 2, 'incorrect # of passes');
       assert.equal(config.audits.length, 1, 'audit filtering failed');
+    });
+
+    it('should combine audits and categories additively', () => {
+      const config = Config.generateNewFilteredConfig(origConfig, ['performance'], ['is-on-https']);
+      const selectedCategory = origConfig.categories.performance;
+      const auditCount = Object.keys(selectedCategory.audits).length + 1;
+      assert.equal(config.passes.length, 2, 'incorrect # of passes');
+      assert.equal(config.audits.length, auditCount, 'audit filtering failed');
+    });
+
+    it('should support redundant filtering', () => {
+      const config = Config.generateNewFilteredConfig(origConfig, ['pwa'], ['is-on-https']);
+      const selectedCategory = origConfig.categories.pwa;
+      const auditCount = Object.keys(selectedCategory.audits).length;
+      assert.equal(config.passes.length, 3, 'incorrect # of passes');
+      assert.equal(config.audits.length, auditCount, 'audit filtering failed');
     });
   });
 });

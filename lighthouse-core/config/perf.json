@@ -1,6 +1,6 @@
 {
   "extends": "lighthouse:default",
   "settings": {
-    "only": ["category:performance"]
+    "onlyCategories": ["performance"]
   }
 }

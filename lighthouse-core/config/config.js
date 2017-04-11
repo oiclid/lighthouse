@@ -273,13 +273,11 @@ class Config {
     }
 
     // Generate a limited config if specified
-    if (configJSON.settings && Array.isArray(configJSON.settings.only)) {
-      const categoryIds = configJSON.settings.only
-        .filter(item => item.match(/^category:(.*)/))
-        .map(item => item.match(/^category:(.*)/)[1]);
-      const auditIds = configJSON.settings.only
-        .filter(item => item.match(/^audit:(.*)/))
-        .map(item => item.match(/^audit:(.*)/)[1]);
+    if (configJSON.settings &&
+        (Array.isArray(configJSON.settings.onlyCategories) ||
+        Array.isArray(configJSON.settings.onlyAudits))) {
+      const categoryIds = configJSON.settings.onlyCategories;
+      const auditIds = configJSON.settings.onlyAudits;
       configJSON = Config.generateNewFilteredConfig(configJSON, categoryIds, auditIds);
     }
 
