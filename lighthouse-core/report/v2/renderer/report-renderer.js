@@ -22,7 +22,7 @@
  * Dummy text for ensuring report robustness: </script> pre$`post %%LIGHTHOUSE_JSON%%
  */
 
-/* globals DOM, DetailsRenderer */
+/* globals DOM, DetailsRenderer, Logger */
 
 const RATINGS = {
   PASS: {label: 'pass', minScore: 75},
@@ -87,13 +87,15 @@ class ReportRenderer {
 
   /**
    * @param {!ReportJSON} report
-   * @return {!Element}
+   * @param {!Element} container Parent element to render the report into.
    */
-  renderReport(report) {
+  renderReport(report, container) {
+    container.innerHTML = ''; // Remove previous report.
+
     try {
-      return this._renderReport(report);
+      container.appendChild(this._renderReport(report));
     } catch (e) {
-      return this._renderException(e);
+      container.appendChild(this._renderException(e));
     }
   }
 
@@ -172,12 +174,22 @@ class ReportRenderer {
    * @return {!DocumentFragment}
    */
   _renderReportHeader(report) {
-    const header = this._cloneTemplate('#tmpl-lighthouse-heading');
+    const header = this._dom.cloneTemplate('#tmpl-lighthouse-heading');
     header.querySelector('.lighthouse-config__timestamp').textContent =
         formatDateTime(report.generatedTime);
     const url = header.querySelector('.lighthouse-metadata__url');
     url.href = report.url;
     url.textContent = report.url;
+
+    const env = header.querySelector('.lighthouse-env__items');
+    report.runtimeConfig.environment.forEach(runtime => {
+      const item = this._dom.cloneTemplate('#tmpl-lighthouse-env__items', env);
+      item.querySelector('.lighthouse-env__name').textContent = runtime.name;
+      item.querySelector('.lighthouse-env__description').textContent = runtime.description;
+      item.querySelector('.lighthouse-env__enabled').textContent =
+          runtime.enabled ? 'Enabled' : 'Disabled';
+      env.appendChild(item);
+    });
 
     return header;
   }
@@ -187,7 +199,7 @@ class ReportRenderer {
    * @return {!DocumentFragment}
    */
   _renderReportFooter(report) {
-    const footer = this._cloneTemplate('#tmpl-lighthouse-footer');
+    const footer = this._dom.cloneTemplate('#tmpl-lighthouse-footer');
     footer.querySelector('.lighthouse-footer__version').textContent = report.lighthouseVersion;
     footer.querySelector('.lighthouse-footer__timestamp').textContent =
         formatDateTime(report.generatedTime);
@@ -199,19 +211,18 @@ class ReportRenderer {
    * @return {!Element}
    */
   _renderReport(report) {
-    const container = this._dom._createElement('div', 'lighthouse-content');
-    const element = container.appendChild(this._createElement('div', 'lighthouse-report'));
+    const element = this._dom.createElement('div', 'lighthouse-report');
 
     element.appendChild(this._renderReportHeader(report));
 
-    const categories = element.appendChild(this._createElement('div', 'lighthouse-categories'));
+    const categories = element.appendChild(this._dom.createElement('div', 'lighthouse-categories'));
     for (const category of report.reportCategories) {
       categories.appendChild(this._renderCategory(category));
     }
 
-    container.appendChild(this._renderReportFooter(report));
+    element.appendChild(this._renderReportFooter(report));
 
-    return container;
+    return element;
   }
 
   /**
