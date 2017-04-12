@@ -26,7 +26,8 @@
   --average-color: #ef6c00; /* md orange 800 */
   --warning-color: #757575; /* md grey 600 */
 
-  --report-border-color: #ebebeb;
+  --report-border-color: #ccc;
+  --report-width: 900px;
 
   --lh-score-highlight-bg: #fafafa;
   --lh-score-icon-background-size: 17px;
@@ -46,18 +47,27 @@ body {
   line-height: var(--body-line-height);
 }
 
+:focus {
+  z-index: 1;
+  position: relative;
+}
+
 [hidden] {
   display: none !important;
+}
+
+a {
+  color: #0c50c7;
+}
+
+summary {
+  cursor: pointer;
 }
 
 /* List */
 .lighthouse-list {
   font-size: smaller;
   margin-top: var(--default-padding);
-}
-
-.lighthouse-list__header {
-  cursor: pointer;
 }
 
 .lighthouse-list__items {
@@ -159,11 +169,11 @@ body {
   margin-top: 2px;
 }
 
-.lighthouse-score__header[open] .lighthouse-score__arrow {
+.lighthouse-score__header[open] .lighthouse-toggle-arrow {
   transform: rotateZ(90deg);
 }
 
-.lighthouse-score__arrow {
+.lighthouse-toggle-arrow {
   background: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"/><path d="M0-.25h24v24H0z" fill="none"/></svg>') no-repeat 50% 50%;
   background-size: contain;
   background-color: transparent;
@@ -172,13 +182,14 @@ body {
   flex: none;
   margin: 0 8px 0 8px;
   transition: transform 150ms ease-in-out;
+  cursor: pointer;
+  border: none;
 }
 
 .lighthouse-score__snippet {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  cursor: pointer;
   /*outline: none;*/
 }
 
@@ -206,16 +217,21 @@ body {
 
 /* Report */
 
+.lighthouse-report {
+  max-width: var(--report-width);
+}
+
 .lighthouse-exception {
   font-size: large;
 }
 
-.lighthouse-report {
-  padding: var(--default-padding);
+.lighthouse-categories {
+  padding-top: calc(var(--default-padding) * 2);
+  margin-top: var(--report-header-height);
 }
 
 .lighthouse-category {
-  padding: 24px 0;
+  padding: 24px calc(var(--default-padding) * 2);
   border-top: 1px solid var(--report-border-color);
 }
 
@@ -246,3 +262,8 @@ body {
   font-weight: 400;
 }
 
+@media screen and (max-width: 767px) {
+  .lighthouse-category {
+    padding: 24px var(--default-padding);
+  }
+}
